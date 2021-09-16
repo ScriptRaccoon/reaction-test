@@ -1,70 +1,84 @@
-const game = document.getElementById("game");
-const intro = document.getElementById("intro");
-const evaluation = document.getElementById("evaluation");
-const number = document.getElementById("number");
-const plus = document.getElementById("plus");
-const times = document.getElementById("times");
-const averageEl = document.getElementById("average");
+// CONSTANTS
 
-let currentState = "intro";
-let animation = null;
+const STATES = {
+    INTRO: 0,
+    GAME: 1,
+    EVALUATION: 2,
+};
+
+const numberRounds = 3;
+const minimalRandomTime = 2000;
+const maximalRandomTime = 10000;
+
+// VARIABLES
+
+let currentState = STATES.INTRO;
 let startTime = null;
-let timesList = [];
-let counting = false;
 let counter = 0;
-let currentNumber = 0;
-const rounds = 20;
+let counting = false;
+let timeList = [];
+let currentRound = 0;
 
-document.addEventListener("keydown", (e) => {
-    if (e.code == "Space") {
-        if (currentState === "game" && counting) {
-            counting = false;
-            setTimeout(() => {
-                resetCounter();
-                showNextNumber();
-            }, 2000);
-        } else if (currentState === "intro" || currentState === "evaluation") {
-            currentState = "game";
+// HANDLE KEYDOWN EVENT
+
+$(() => {
+    $(window).keydown((e) => {
+        if (e.code != "Space") return;
+        if (currentState === STATES.GAME) {
+            if (counting) {
+                counting = false;
+                setTimeout(() => {
+                    resetCounter();
+                    showNextNumber();
+                }, 2000);
+            } else {
+                location.reload();
+            }
+        } else {
+            currentState = STATES.GAME;
             startGame();
         }
-    }
+    });
 });
 
+// START GAME
+
 function startGame() {
-    intro.style.display = "none";
-    evaluation.style.display = "none";
-    game.style.display = "flex";
-    currentNumber = 0;
-    timesList = [];
-    averageEl.innerText = "";
-    times.innerText = "";
+    $("#intro, #evaluation").hide();
+    $("#game").fadeIn();
+    currentRound = 0;
+    timeList = [];
+    $("#average, #times").text("");
     resetCounter();
     showNextNumber();
 }
 
+// SHOW NEXT NUMBER
+
 function showNextNumber() {
-    currentNumber++;
-    if (currentNumber > rounds) {
+    currentRound++;
+    if (currentRound > numberRounds) {
         showEvaluation();
     } else {
-        const randomTime = 2000 + Math.floor(Math.random() * 8000);
+        const randomTime = randomInt(minimalRandomTime, maximalRandomTime);
         setTimeout(() => {
             startCounter();
         }, randomTime);
     }
 }
 
+// COUNTER FUNCTIONS
+
 function resetCounter() {
     counting = false;
-    number.style.display = "none";
-    plus.style.display = "block";
-    number.innerText = "0";
     counter = 0;
+    $("#number").fadeOut(100);
+    $("#plus").fadeIn(100);
 }
 
 function startCounter() {
-    number.style.display = "block";
-    plus.style.display = "none";
+    $("#number").text("0").show();
+    $("#plus").hide();
     startTime = new Date().getTime();
     counting = true;
     count();
@@ -76,17 +90,24 @@ function count() {
     if (counting) {
         requestAnimationFrame(count);
     } else {
-        timesList.push(counter);
+        timeList.push(counter);
     }
 }
 
+// SHOW EVALUATION
+
 function showEvaluation() {
-    intro.style.display = "none";
-    game.style.display = "none";
-    evaluation.style.display = "flex";
-    currentState = "evaluation";
-    times.innerText = timesList.join(", ");
-    averageEl.innerText = Math.round(average(timesList));
+    $("#intro, #game").hide();
+    $("#evaluation").fadeIn("slow");
+    currentState = STATES.EVALUATION;
+    $("#times").text(timeList.join(", "));
+    $("#average").text(Math.round(average(timeList)));
+}
+
+// HELPER FUNCTIONS
+
+function randomInt(a, b) {
+    return a + Math.floor(Math.random() * (b - a));
 }
 
 function average(arr) {
