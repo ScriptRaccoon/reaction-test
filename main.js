@@ -6,7 +6,7 @@ const STATES = {
     EVALUATION: 2,
 };
 
-const numberRounds = 3;
+const numberRounds = 20;
 const minimalRandomTime = 2000;
 const maximalRandomTime = 10000;
 
